@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register – Kehlosastra</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body class="auth-body">
+
+<div class="auth-wrap">
+  <a href="/" class="auth-logo">
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Kehlosastra" />
+  </a>
+
+  <div class="auth-card">
+    <div class="auth-header">
+      <h1 class="auth-title">Create account</h1>
+      <p class="auth-sub">Only <strong>@sastra.ac.in</strong> emails are allowed.</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+      <div class="auth-alert auth-alert--{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="/register" class="auth-form" id="regForm" novalidate>
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input type="text" name="name" class="form-input"
+               placeholder="e.g. Arjun Kumar" required maxlength="100" autofocus />
+      </div>
+      <div class="form-group">
+        <label class="form-label">SASTRA Email</label>
+        <input type="email" name="email" id="regEmail" class="form-input"
+               placeholder="yourname@sastra.ac.in" required />
+        <span class="field-hint" id="emailHint"></span>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <div class="input-pw-wrap">
+          <input type="password" name="password" id="regPwd" class="form-input"
+                 placeholder="Min. 6 characters" required minlength="6" />
+          <button type="button" class="pw-toggle" onclick="togglePw('regPwd', this)">👁</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Confirm Password</label>
+        <div class="input-pw-wrap">
+          <input type="password" name="password2" id="regPwd2" class="form-input"
+                 placeholder="Re-enter password" required minlength="6" />
+          <button type="button" class="pw-toggle" onclick="togglePw('regPwd2', this)">👁</button>
+        </div>
+        <span class="field-hint" id="pwHint"></span>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full">Create Account →</button>
+    </form>
+
+    <p class="auth-switch">
+      Already have an account? <a href="/login">Log in</a>
+    </p>
+  </div>
+</div>
+
+<script>
+function togglePw(id, btn) {
+  const inp = document.getElementById(id);
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+}
+
+// Live email validation
+const emailEl = document.getElementById('regEmail');
+const emailHint = document.getElementById('emailHint');
+emailEl.addEventListener('input', () => {
+  const val = emailEl.value.trim().toLowerCase();
+  if (!val) { emailHint.textContent = ''; emailEl.className = 'form-input'; return; }
+  if (val.endsWith('@sastra.ac.in')) {
+    emailEl.className = 'form-input input-ok';
+    emailHint.textContent = '✓ Valid SASTRA email';
+    emailHint.className = 'field-hint hint-ok';
+  } else {
+    emailEl.className = 'form-input input-error';
+    emailHint.textContent = '⚠ Must be @sastra.ac.in';
+    emailHint.className = 'field-hint hint-error';
+  }
+});
+
+// Password match
+const pwd1 = document.getElementById('regPwd');
+const pwd2 = document.getElementById('regPwd2');
+const pwHint = document.getElementById('pwHint');
+function checkMatch() {
+  if (!pwd2.value) { pwHint.textContent = ''; return; }
+  if (pwd1.value === pwd2.value) {
+    pwHint.textContent = '✓ Passwords match';
+    pwHint.className = 'field-hint hint-ok';
+  } else {
+    pwHint.textContent = '⚠ Passwords do not match';
+    pwHint.className = 'field-hint hint-error';
+  }
+}
+pwd1.addEventListener('input', checkMatch);
+pwd2.addEventListener('input', checkMatch);
+</script>
+</body>
+</html>

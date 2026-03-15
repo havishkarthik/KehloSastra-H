@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kehlosastra – Campus Sports Hub</title>
+  <meta name="description" content="Find players and organize sports matches on campus. Only for SASTRA students." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='landing.css') }}" />
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     NAVBAR
+══════════════════════════════════════════ -->
+<nav class="navbar" id="navbar">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">
+      <img src="{{ url_for('static', filename='logo.png') }}" alt="Kehlosastra" class="nav-logo-img" />
+    </a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#home" class="nav-link active">Home</a></li>
+      <li><a href="#features" class="nav-link">Features</a></li>
+      <li><a href="#how" class="nav-link">How it Works</a></li>
+      <li><a href="#faq" class="nav-link">FAQ</a></li>
+      <li><a href="#contact" class="nav-link">Contact</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="/matches" class="btn btn-ghost">Browse Matches</a>
+      <a href="/create" class="btn btn-primary">Get Started</a>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════
+     HERO
+══════════════════════════════════════════ -->
+<section class="hero" id="home">
+  <div class="hero-inner">
+
+    <!-- Left -->
+    <div class="hero-copy">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        For SASTRA students only
+      </div>
+      <h1 class="hero-headline">
+        Find Players.<br>
+        <span class="headline-accent">Play Sports.</span>
+      </h1>
+      <p class="hero-sub">
+        Kehlosastra helps college students quickly organize sports matches by finding players on campus.
+        Need 3 more for football? Find them in minutes.
+      </p>
+      <div class="hero-cta">
+        <a href="/create" class="btn btn-primary btn-lg">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Create Game
+        </a>
+        <a href="/matches" class="btn btn-secondary btn-lg">
+          Browse Matches →
+        </a>
+      </div>
+      <div class="hero-trust">
+        <div class="trust-avatars">
+          <div class="avatar">A</div>
+          <div class="avatar">R</div>
+          <div class="avatar">S</div>
+          <div class="avatar">+</div>
+        </div>
+        <p>Hundreds of students already playing</p>
+      </div>
+    </div>
+
+    <!-- Right: Phone mockup -->
+    <div class="hero-visual">
+      <div class="phone-wrap">
+        <div class="phone">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <!-- App header -->
+            <div class="app-topbar">
+              <span class="app-logo-sm">⚡ Matches</span>
+              <span class="app-dot-green"></span>
+            </div>
+            <!-- Match cards inside phone -->
+            <div class="app-card app-card--green">
+              <div class="app-card-row">
+                <span class="app-badge app-badge--green">⚽ Football</span>
+                <span class="app-status">OPEN</span>
+              </div>
+              <div class="app-card-detail">Today · 4:00 PM · Main Ground</div>
+              <div class="app-card-progress">
+                <div class="app-progress-bar"><div class="app-progress-fill" style="width:60%"></div></div>
+                <span>6 / 10 players</span>
+              </div>
+            </div>
+            <div class="app-card app-card--blue">
+              <div class="app-card-row">
+                <span class="app-badge app-badge--blue">🏸 Badminton</span>
+                <span class="app-status">OPEN</span>
+              </div>
+              <div class="app-card-detail">Tomorrow · 6:30 PM · Court B</div>
+              <div class="app-card-progress">
+                <div class="app-progress-bar"><div class="app-progress-fill" style="width:40%"></div></div>
+                <span>2 / 4 players</span>
+              </div>
+            </div>
+            <div class="app-card app-card--orange">
+              <div class="app-card-row">
+                <span class="app-badge app-badge--orange">🏏 Cricket</span>
+                <span class="app-status app-status--full">FULL</span>
+              </div>
+              <div class="app-card-detail">Mar 20 · 3:00 PM · Oval Ground</div>
+              <div class="app-card-progress">
+                <div class="app-progress-bar"><div class="app-progress-fill app-progress-fill--full" style="width:100%"></div></div>
+                <span>22 / 22 players</span>
+              </div>
+            </div>
+            <!-- join button -->
+            <a href="/matches" class="app-join-btn">Join a Match →</a>
+          </div>
+        </div>
+        <!-- Floating cards -->
+        <div class="float-card float-card--1">
+          <span>🏀</span> Basketball match added!
+        </div>
+        <div class="float-card float-card--2">
+          <span>✅</span> You joined Football!
+        </div>
+        <!-- Person illustration (CSS) -->
+        <div class="person">
+          <div class="person-head"></div>
+          <div class="person-body"></div>
+          <div class="person-arm person-arm--left"></div>
+          <div class="person-arm person-arm--right"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     STATS STRIP
+══════════════════════════════════════════ -->
+<div class="stats-strip">
+  <div class="stats-inner">
+    <div class="stat-item">
+      <span class="stat-num">{{ total_games }}+</span>
+      <span class="stat-desc">Matches created</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-num">{{ open_games }}</span>
+      <span class="stat-desc">Open right now</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-num">10+</span>
+      <span class="stat-desc">Sports supported</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-num">1</span>
+      <span class="stat-desc">University campus</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     FEATURES
+══════════════════════════════════════════ -->
+<section class="features" id="features">
+  <div class="section-inner">
+    <div class="section-label">Features</div>
+    <h2 class="section-title">Everything you need to play</h2>
+    <p class="section-sub">No app download, no account needed. Just your SASTRA email and you're in.</p>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon feature-icon--blue">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        </div>
+        <h3 class="feature-title">Create a Match</h3>
+        <p class="feature-desc">Set up a game in under a minute. Pick your sport, date, time, venue, and how many players you need.</p>
+        <a href="/create" class="feature-link">Create now →</a>
+      </div>
+
+      <div class="feature-card feature-card--highlight">
+        <div class="feature-badge-top">Most used</div>
+        <div class="feature-icon feature-icon--white">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <h3 class="feature-title">Join Matches</h3>
+        <p class="feature-desc">Browse all open matches on campus. Find one you like, enter your name and email, and you're in.</p>
+        <a href="/matches" class="feature-link feature-link--white">Browse matches →</a>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon feature-icon--green">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h3 class="feature-title">Campus Only</h3>
+        <p class="feature-desc">Only students with a verified <strong>@sastra.ac.in</strong> email can create or join games. Safe and campus-exclusive.</p>
+        <span class="feature-link feature-link--muted">Auto-verified ✓</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     HOW IT WORKS
+══════════════════════════════════════════ -->
+<section class="how" id="how">
+  <div class="section-inner">
+    <div class="section-label">How it works</div>
+    <h2 class="section-title">From zero to playing in 3 steps</h2>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <h3>Post your match</h3>
+          <p>Fill in sport, date, time, location, and how many players you need. Takes about 30 seconds.</p>
+        </div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <h3>Students discover it</h3>
+          <p>Your match appears on the home feed. Other students can see it and join with a tap.</p>
+        </div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <h3>Play together</h3>
+          <p>Once enough players join, head to the venue and play. It's that simple.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     FAQ
+══════════════════════════════════════════ -->
+<section class="faq" id="faq">
+  <div class="section-inner faq-inner">
+    <div>
+      <div class="section-label">FAQ</div>
+      <h2 class="section-title">Common questions</h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Who can use Kehlosastra?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a">
+          <p>Only students with a <strong>@sastra.ac.in</strong> email address. When you create or join a match, your email is verified automatically.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Do I need to sign up or create an account?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a">
+          <p>No! There's no signup process. Just enter your name and SASTRA email when creating or joining a match. That's it.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          What sports are supported?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a">
+          <p>Football, Cricket, Basketball, Badminton, Volleyball, Table Tennis, Tennis, Kabaddi, Throwball, and more. If your sport isn't listed, pick "Other".</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Can I bring friends who aren't on the platform?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a">
+          <p>Yes. When creating a match, you can enter how many players you're already bringing with you. Those slots are marked as pre-filled.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Is this free?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a">
+          <p>100% free. No subscriptions, no premium plans, no ads. This is a student project built for the campus community.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     CTA BANNER
+══════════════════════════════════════════ -->
+<section class="cta-banner">
+  <div class="cta-inner">
+    <h2>Ready to play?</h2>
+    <p>Post a match now and find players from your campus in minutes.</p>
+    <div class="cta-buttons">
+      <a href="/create" class="btn btn-white btn-lg">Create a Match</a>
+      <a href="/matches" class="btn btn-outline-white btn-lg">View Matches</a>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════ -->
+<footer class="footer" id="contact">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="nav-logo">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Kehlosastra" class="footer-logo-img" />
+      </div>
+      <p>Campus sports coordination platform built exclusively for SASTRA University students.</p>
+    </div>
+    <div class="footer-links">
+      <div class="footer-col">
+        <h4>Platform</h4>
+        <a href="/matches">Browse Matches</a>
+        <a href="/create">Create Match</a>
+      </div>
+      <div class="footer-col">
+        <h4>Navigate</h4>
+        <a href="#features">Features</a>
+        <a href="#how">How it Works</a>
+        <a href="#faq">FAQ</a>
+      </div>
+      <div class="footer-col">
+        <h4>University</h4>
+        <a href="https://www.sastra.edu" target="_blank" rel="noopener">SASTRA.edu</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2024 Kehlosastra · Built for SASTRA University</p>
+  </div>
+</footer>
+
+<script src="{{ url_for('static', filename='landing.js') }}"></script>
+</body>
+</html>
