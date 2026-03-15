@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kehlosastra – Campus Sports Hub</title>
+  <meta name="description" content="Find and join campus sports matches at SASTRA University. Play football, cricket, basketball and more." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+
+<!-- ── Nav ───────────────────────────────────────────────── -->
+<nav class="navbar">
+  <a href="/" class="brand">
+    <span class="brand-icon">⚡</span>
+    <span>Kehlosastra</span>
+  </a>
+  <a href="/create" class="btn btn-primary">+ New Match</a>
+</nav>
+
+<!-- ── Flash ─────────────────────────────────────────────── -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="flash-container">
+  {% for category, message in messages %}
+  <div class="flash flash-{{ category }}">
+    <span>{{ message }}</span>
+    <button class="flash-close" onclick="this.parentElement.remove()">✕</button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<!-- ── Hero ──────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-eyebrow">⚡ SASTRA University</div>
+  <h1 class="hero-title">
+    Find your next<br>
+    <span class="accent-word">campus match.</span>
+  </h1>
+  <p class="hero-sub">Organize and join sports games with fellow students. No signups, no hassle — just play.</p>
+  <div class="hero-stats">
+    <div class="stat-pill">
+      <span class="stat-num">{{ games | length }}</span>
+      <span class="stat-label">Active matches</span>
+    </div>
+    <div class="stat-pill">
+      <span class="stat-num">{{ games | selectattr('is_full', 'equalto', False) | list | length }}</span>
+      <span class="stat-label">Open to join</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── Matches ───────────────────────────────────────────── -->
+<main class="container">
+  <div class="section-header">
+    <h2 class="section-title">Matches</h2>
+    <div class="filter-pills">
+      <button class="pill active" data-filter="all">All</button>
+      <button class="pill" data-filter="Football">Football</button>
+      <button class="pill" data-filter="Cricket">Cricket</button>
+      <button class="pill" data-filter="Basketball">Basketball</button>
+      <button class="pill" data-filter="Badminton">Badminton</button>
+      <button class="pill" data-filter="Volleyball">Volleyball</button>
+    </div>
+  </div>
+
+  {% if games %}
+  <div class="games-grid" id="gamesGrid">
+    {% for game in games %}
+    <article class="game-card {% if game.is_full %}card-full{% endif %}" data-sport="{{ game.sport }}">
+
+      <!-- Header -->
+      <div class="card-header">
+        <span class="sport-badge sport-{{ game.sport | lower | replace(' ', '-') }}">
+          {{ sport_emoji(game.sport) if sport_emoji is defined else '' }} {{ game.sport }}
+        </span>
+        {% if game.is_full %}
+          <span class="status-badge status-full">Full</span>
+        {% elif game.date < today %}
+          <span class="status-badge status-past">Ended</span>
+        {% else %}
+          <span class="status-badge status-open">Open</span>
+        {% endif %}
+      </div>
+
+      <!-- Info rows -->
+      <div class="card-body">
+        <div class="info-row"><span class="info-icon">📅</span><span>{{ game.date }}</span></div>
+        <div class="info-row"><span class="info-icon">🕐</span><span>{{ game.time }}</span></div>
+        <div class="info-row"><span class="info-icon">📍</span><span>{{ game.location }}</span></div>
+        <div class="info-row"><span class="info-icon">⚥</span><span>{{ game.gender }}</span></div>
+        <div class="info-row"><span class="info-icon">👤</span><span>By {{ game.creator_name }}</span></div>
+      </div>
+
+      <div class="card-divider"></div>
+
+      <!-- Progress -->
+      <div class="player-progress">
+        <div class="progress-label">
+          <span>Players</span>
+          <span class="progress-count">{{ game.player_count }} / {{ game.total_players }}</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill {% if game.is_full %}fill-full{% endif %}" style="width: {{ [(game.player_count / game.total_players * 100), 100] | min }}%"></div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="card-footer">
+        <a href="/game/{{ game.id }}" class="btn btn-outline btn-sm">Details</a>
+        {% if not game.is_full and game.date >= today %}
+          <a href="/game/{{ game.id }}#join" class="btn btn-primary btn-sm">Join →</a>
+        {% else %}
+          <span class="btn btn-disabled btn-sm">{% if game.is_full %}Full{% else %}Ended{% endif %}</span>
+        {% endif %}
+      </div>
+
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">🏟️</div>
+    <h3>No matches yet</h3>
+    <p>Be the first to create one and rally your campus.</p>
+    <a href="/create" class="btn btn-primary">Create a Match</a>
+  </div>
+  {% endif %}
+</main>
+
+<!-- ── Footer ─────────────────────────────────────────────── -->
+<footer class="footer">
+  <span class="footer-brand">Kehlosastra</span>
+  <span>Built for SASTRA University · 2024</span>
+</footer>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
