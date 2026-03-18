@@ -4,13 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{{ game.sport }} at {{ game.location }} – Kehlosastra</title>
+  <meta name="description" content="{{ game.sport }} match at {{ game.location }} — join now on Kehlosastra." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
 </head>
 <body>
 
-<nav class="navbar">
+<nav class="navbar" id="navbar">
   <a href="/" class="brand">
     <img src="{{ url_for('static', filename='logo.png') }}" alt="Kehlosastra" class="nav-logo-img" />
   </a>
@@ -189,7 +190,15 @@
 
 <footer class="footer">
   <span class="footer-brand">Kehlosastra</span>
-  <span>Built for SASTRA University · 2024</span>
+  <span>© 2026 · Built for SASTRA University</span>
 </footer>
+
+<script>
+// Navbar scroll
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  navbar?.classList.toggle('scrolled', window.scrollY > 10);
+});
+</script>
 </body>
 </html>

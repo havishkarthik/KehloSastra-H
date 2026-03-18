@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 from flask import (
     Flask, render_template, request, redirect,
-    url_for, flash, session, g
+    url_for, flash, session, g, jsonify
 )
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -78,6 +78,20 @@ def init_db():
             UNIQUE(game_id, user_id),
             FOREIGN KEY (game_id) REFERENCES Games(id),
             FOREIGN KEY (user_id) REFERENCES Users(id)
+        )
+    """)
+
+    # Bookings table for court booking
+    db.execute("""
+        CREATE TABLE IF NOT EXISTS Bookings (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            name        TEXT NOT NULL,
+            email       TEXT NOT NULL,
+            sport       TEXT NOT NULL,
+            date        TEXT NOT NULL,
+            start_time  TEXT NOT NULL,
+            end_time    TEXT NOT NULL,
+            created_at  TEXT NOT NULL
         )
     """)
 
@@ -443,6 +457,181 @@ def join_game(game_id):
 
 
 # ─────────────────────────────────────────────────────────
+# Routes: Court Booking
+# ─────────────────────────────────────────────────────────
+
+BOOKABLE_SPORTS = [
+    "Badminton", "Football", "Cricket", "Basketball",
+    "Volleyball", "Tennis", "Table Tennis",
+]
+
+BOOKING_SLOTS = [
+    "06:00","06:30","07:00","07:30","08:00","08:30","09:00","09:30",
+    "10:00","10:30","11:00","11:30","12:00","12:30","13:00","13:30",
+    "14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30",
+    "18:00","18:30","19:00","19:30","20:00","20:30","21:00","21:30","22:00",
+]
+
+
+def check_overlap(sport, date, start, end, exclude_id=None):
+    """Return True if the requested slot overlaps an existing booking."""
+    db = get_db()
+    query = """
+        SELECT id FROM Bookings
+        WHERE sport = ? AND date = ?
+          AND start_time < ? AND end_time > ?
+    """
+    params = [sport, date, end, start]
+    if exclude_id:
+        query += " AND id != ?"
+        params.append(exclude_id)
+    return db.execute(query, params).fetchone() is not None
+
+
+@app.route("/booking")
+def booking_page():
+    """Render the court booking form."""
+    return render_template(
+        "booking.html",
+        sports=BOOKABLE_SPORTS,
+        slots=BOOKING_SLOTS,
+    )
+
+
+@app.route("/book", methods=["POST"])
+def book():
+    """Create a booking with anti-overlap logic."""
+    # Accept both form and JSON
+    if request.is_json:
+        data = request.get_json()
+    else:
+        data = request.form
+
+    name  = (data.get("name")  or "").strip()
+    email = (data.get("email") or "").strip().lower()
+    sport = (data.get("sport") or "").strip()
+    date  = (data.get("date")  or "").strip()
+    start = (data.get("start_time") or "").strip()
+    end   = (data.get("end_time")   or "").strip()
+
+    errors = []
+
+    # Required fields
+    if not all([name, email, sport, date, start, end]):
+        errors.append("All fields are required.")
+
+    # SASTRA email
+    if email and not is_sastra_email(email):
+        errors.append("Only @sastra.ac.in emails are allowed.")
+
+    # Time validation
+    if start and end:
+        if end <= start:
+            errors.append("End time must be after start time.")
+
+    # Past booking check
+    if date and start:
+        try:
+            booking_dt = datetime.strptime(f"{date} {start}", "%Y-%m-%d %H:%M")
+            if booking_dt < now_dt():
+                errors.append("Cannot book a slot in the past.")
+        except ValueError:
+            errors.append("Invalid date or time format.")
+
+    if errors:
+        if request.is_json:
+            return jsonify({"success": False, "errors": errors}), 400
+        for e in errors:
+            flash(e, "error")
+        return redirect(url_for("booking_page"))
+
+    # Anti-overlap check
+    if check_overlap(sport, date, start, end):
+        msg = f"This {sport} slot on {date} from {start} to {end} is already booked."
+        if request.is_json:
+            return jsonify({"success": False, "errors": [msg]}), 409
+        flash(msg, "error")
+        return redirect(url_for("booking_page"))
+
+    # Insert
+    db = get_db()
+    created_at = now_dt().strftime("%Y-%m-%d %H:%M:%S")
+    db.execute(
+        """INSERT INTO Bookings (name, email, sport, date, start_time, end_time, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?)""",
+        (name, email, sport, date, start, end, created_at)
+    )
+    db.commit()
+
+    if request.is_json:
+        return jsonify({"success": True, "message": "Court booked successfully!"}), 201
+
+    flash(f"{sport} court booked for {date} from {start} to {end}! 🎉", "success")
+    return redirect(url_for("booking_page"))
+
+
+@app.route("/bookings")
+def list_bookings():
+    """Return all bookings — HTML or JSON."""
+    db = get_db()
+    rows = db.execute(
+        "SELECT * FROM Bookings ORDER BY date ASC, start_time ASC"
+    ).fetchall()
+    bookings = [dict(r) for r in rows]
+
+    if request.args.get("format") == "json" or request.is_json:
+        return jsonify(bookings)
+    return render_template("booking.html",
+                           sports=BOOKABLE_SPORTS,
+                           slots=BOOKING_SLOTS,
+                           bookings=bookings,
+                           show_bookings=True)
+
+
+@app.route("/availability")
+def availability():
+    """Return available slots for a sport on a given date."""
+    sport = request.args.get("sport", "").strip()
+    date  = request.args.get("date", "").strip()
+
+    if not sport or not date:
+        return jsonify({"error": "sport and date parameters are required."}), 400
+
+    db = get_db()
+    booked = db.execute(
+        "SELECT start_time, end_time FROM Bookings WHERE sport = ? AND date = ? ORDER BY start_time ASC",
+        (sport, date)
+    ).fetchall()
+
+    booked_list = [{"start": r["start_time"], "end": r["end_time"]} for r in booked]
+
+    # Build free slots from BOOKING_SLOTS by checking 30-min windows
+    free_slots = []
+    for i in range(len(BOOKING_SLOTS) - 1):
+        s = BOOKING_SLOTS[i]
+        e = BOOKING_SLOTS[i + 1]
+        if not check_overlap(sport, date, s, e):
+            free_slots.append({"start": s, "end": e})
+
+    return jsonify({
+        "sport": sport,
+        "date": date,
+        "booked": booked_list,
+        "available": free_slots,
+    })
+
+
+@app.route("/admin/bookings")
+def admin_bookings():
+    """Admin endpoint — JSON list of all bookings."""
+    db = get_db()
+    rows = db.execute(
+        "SELECT * FROM Bookings ORDER BY date DESC, start_time DESC"
+    ).fetchall()
+    return jsonify([dict(r) for r in rows])
+
+
+# ─────────────────────────────────────────────────────────
 # Boot
 # ─────────────────────────────────────────────────────────
 
@@ -450,4 +639,5 @@ with app.app_context():
     init_db()
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(debug=True, host="0.0.0.0", port=port)

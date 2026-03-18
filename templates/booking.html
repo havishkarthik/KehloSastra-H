@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Book a Court – Kehlosastra</title>
+  <meta name="description" content="Reserve a sports court on campus — Kehlosastra." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+  <a href="/" class="brand">
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Kehlosastra" class="nav-logo-img" />
+  </a>
+  <div class="nav-right">
+    {% if current_user %}
+      <span class="nav-user">👋 {{ current_user.name.split()[0] }}</span>
+    {% endif %}
+    <a href="/matches" class="btn btn-outline btn-sm">🏟 Matches</a>
+    <a href="/booking" class="btn btn-primary btn-sm">📋 Book Court</a>
+    {% if current_user %}
+      <a href="/logout" class="btn btn-outline btn-sm">Log out</a>
+    {% else %}
+      <a href="/login" class="btn btn-outline btn-sm">Log in</a>
+    {% endif %}
+  </div>
+</nav>
+
+<!-- Flash messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="flash-container">
+  {% for category, message in messages %}
+  <div class="flash flash-{{ category }}">
+    <span>{{ message }}</span>
+    <button class="flash-close" onclick="this.parentElement.remove()">✕</button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<main class="container">
+
+  <div class="page-header">
+    <div class="page-header-eyebrow">🏸 Court Booking</div>
+    <h1 class="page-header-title">Book a Court</h1>
+    <p class="page-header-sub">Reserve a sports court on campus. The system prevents double-bookings automatically.</p>
+  </div>
+
+  <div class="booking-layout">
+
+    <!-- ── Booking Form ─────────────────────────────── -->
+    <div class="form-card">
+      <form action="/book" method="POST" class="game-form" id="bookingForm" novalidate>
+
+        <div class="form-section">
+          <div class="form-section-label">Your details</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Name <span class="required">*</span></label>
+              <input type="text" name="name" class="form-input" placeholder="e.g. Arjun Kumar"
+                     required maxlength="100"
+                     {% if current_user %}value="{{ current_user.name }}"{% endif %} />
+            </div>
+            <div class="form-group">
+              <label class="form-label">SASTRA Email <span class="required">*</span></label>
+              <input type="email" name="email" id="bookEmail" class="form-input"
+                     placeholder="yourname@sastra.ac.in" required
+                     {% if current_user %}value="{{ current_user.email }}"{% endif %} />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-label">Court & Time</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Sport <span class="required">*</span></label>
+              <select name="sport" id="bookSport" class="form-input form-select" required>
+                <option value="" disabled selected>Select sport</option>
+                {% for s in sports %}
+                <option value="{{ s }}">{{ s }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Date <span class="required">*</span></label>
+              <input type="date" name="date" id="bookDate" class="form-input" required />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Start Time <span class="required">*</span></label>
+              <select name="start_time" id="bookStart" class="form-input form-select" required>
+                <option value="" disabled selected>Start</option>
+                {% for s in slots %}
+                <option value="{{ s }}">{{ s }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">End Time <span class="required">*</span></label>
+              <select name="end_time" id="bookEnd" class="form-input form-select" required>
+                <option value="" disabled selected>End</option>
+                {% for s in slots %}
+                <option value="{{ s }}">{{ s }}</option>
+                {% endfor %}
+              </select>
+              <span class="field-hint" id="timeHint"></span>
+            </div>
+          </div>
+
+          <!-- Availability indicator -->
+          <div class="avail-box" id="availBox" style="display:none;">
+            <div class="avail-title" id="availTitle">Checking availability…</div>
+            <div class="avail-slots" id="availSlots"></div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <a href="/matches" class="btn btn-outline">← Back to Matches</a>
+          <button type="submit" class="btn btn-primary btn-lg" id="bookBtn">
+            Book Court 🏸
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- ── Today's Bookings ─────────────────────────── -->
+    <div class="booking-sidebar">
+      <div class="sidebar-card">
+        <h3 class="sidebar-title">📋 Today's Bookings</h3>
+        <div id="todayBookings" class="today-bookings">
+          <p class="loading-text">Loading…</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── All Bookings (if show_bookings mode) ──────── -->
+  {% if show_bookings and bookings %}
+  <div class="bookings-table-wrap">
+    <h2 class="section-title" style="margin-bottom:16px;">All Bookings</h2>
+    <table class="bookings-table">
+      <thead>
+        <tr>
+          <th>Sport</th><th>Date</th><th>Start</th><th>End</th><th>Name</th><th>Booked At</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in bookings %}
+        <tr>
+          <td><span class="sport-badge sport-{{ b.sport|lower|replace(' ','-') }}">{{ b.sport }}</span></td>
+          <td>{{ b.date }}</td>
+          <td>{{ b.start_time }}</td>
+          <td>{{ b.end_time }}</td>
+          <td>{{ b.name }}</td>
+          <td>{{ b.created_at }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+</main>
+
+<footer class="footer">
+  <span class="footer-brand">Kehlosastra</span>
+  <span>© 2026 · Built for SASTRA University</span>
+</footer>
+
+<script>
+// Navbar scroll
+const navbarEl = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  navbarEl?.classList.toggle('scrolled', window.scrollY > 10);
+});
+
+// ── Set min date to today ─────────────────────────────
+const dateEl = document.getElementById('bookDate');
+if (dateEl) dateEl.min = new Date().toISOString().split('T')[0];
+
+// ── Time validation ───────────────────────────────────
+const startEl = document.getElementById('bookStart');
+const endEl   = document.getElementById('bookEnd');
+const hint    = document.getElementById('timeHint');
+function checkTime() {
+  if (!startEl.value || !endEl.value) { hint.textContent=''; return; }
+  if (endEl.value <= startEl.value) {
+    hint.textContent = '⚠ End time must be after start';
+    hint.className = 'field-hint hint-error';
+  } else {
+    hint.textContent = '✓ Valid';
+    hint.className = 'field-hint hint-ok';
+    checkAvailability();
+  }
+}
+startEl?.addEventListener('change', checkTime);
+endEl?.addEventListener('change', checkTime);
+
+// ── Live availability check ───────────────────────────
+const sportEl  = document.getElementById('bookSport');
+const availBox = document.getElementById('availBox');
+const availTitle = document.getElementById('availTitle');
+const availSlots = document.getElementById('availSlots');
+
+async function checkAvailability() {
+  const sport = sportEl?.value;
+  const date  = dateEl?.value;
+  const start = startEl?.value;
+  const end   = endEl?.value;
+  if (!sport || !date || !start || !end || end <= start) {
+    availBox.style.display = 'none';
+    return;
+  }
+  availBox.style.display = 'block';
+  availTitle.textContent = 'Checking…';
+  availSlots.innerHTML = '';
+
+  try {
+    const res = await fetch(`/availability?sport=${encodeURIComponent(sport)}&date=${date}`);
+    const data = await res.json();
+
+    const overlapping = data.booked.some(b =>
+      start < b.end && end > b.start
+    );
+
+    if (overlapping) {
+      availTitle.textContent = '❌ This slot is already booked';
+      availTitle.className = 'avail-title avail-error';
+      availSlots.innerHTML = '<p class="avail-hint">Try a different time.</p>';
+    } else {
+      availTitle.textContent = '✅ Slot is available!';
+      availTitle.className = 'avail-title avail-ok';
+      availSlots.innerHTML = '';
+    }
+
+    if (data.booked.length > 0) {
+      const ul = document.createElement('div');
+      ul.className = 'booked-list';
+      ul.innerHTML = '<p class="booked-label">Booked slots for ' + sport + ':</p>';
+      data.booked.forEach(b => {
+        const d = document.createElement('div');
+        d.className = 'booked-slot';
+        d.textContent = b.start + ' – ' + b.end;
+        ul.appendChild(d);
+      });
+      availSlots.appendChild(ul);
+    }
+  } catch (e) {
+    availTitle.textContent = 'Could not check availability.';
+  }
+}
+
+sportEl?.addEventListener('change', checkAvailability);
+dateEl?.addEventListener('change', checkAvailability);
+
+// ── Load today's bookings ─────────────────────────────
+async function loadToday() {
+  const el = document.getElementById('todayBookings');
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const res = await fetch(`/bookings?format=json`);
+    const all = await res.json();
+    const todays = all.filter(b => b.date >= today);
+    if (todays.length === 0) {
+      el.innerHTML = '<p class="empty-mini">No bookings yet today.</p>';
+      return;
+    }
+    el.innerHTML = todays.slice(0, 10).map(b => `
+      <div class="today-item">
+        <div class="today-sport">${b.sport}</div>
+        <div class="today-time">${b.date} · ${b.start_time} – ${b.end_time}</div>
+        <div class="today-who">${b.name}</div>
+      </div>
+    `).join('');
+  } catch {
+    el.innerHTML = '<p class="empty-mini">Could not load bookings.</p>';
+  }
+}
+loadToday();
+</script>
+</body>
+</html>
